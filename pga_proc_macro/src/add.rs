@@ -15,6 +15,14 @@ pub fn define() -> TokenStream {
             }
         }
 
+        impl<T> std::ops::Sub<T> for Zero {
+            type Output = T;
+            #[inline]
+            fn sub(self, rhs: T) -> Self::Output {
+                rhs
+            }
+        }
+
         #(#blade_addition)*
         #(#grade_addition)*
     }
@@ -136,7 +144,7 @@ fn sub_grades(lhs: Grade, rhs: Grade) -> TokenStream {
                 (true, false) => quote! { #f: self.#f, },
                 (false, true) => quote! { #f: -rhs.#f, },
                 (false, false) => {
-                    unreachable!("add_grades: at least one side should contain each blade")
+                    unreachable!("sub_grades: at least one side should contain each blade")
                 }
             }
         });
@@ -153,7 +161,7 @@ fn sub_grades(lhs: Grade, rhs: Grade) -> TokenStream {
             }
         }
     } else {
-        // TODO disimilar grade addition = multivector
+        // TODO disimilar grade subtraction = multivector
         quote! {}
     }
 }
