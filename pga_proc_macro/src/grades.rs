@@ -5,8 +5,8 @@ use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Grade {
-    k: u8,
-    ty: GradeType,
+    pub k: u8,
+    pub ty: GradeType,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -34,21 +34,13 @@ impl Grade {
         }
 
         let grade = self.ident();
-        let blades = Basis::iter()
-            // TODO extract filtering into fn Grade::contains(Basis)
-            .filter(|b| b.grade() == self.k)
-            .filter(|b| match self.ty {
-                GradeType::Whole => true,
-                GradeType::Bulk => !b.get(0),
-                GradeType::Weight => b.get(0),
-            })
-            .map(|b| {
-                let blade = b.ident();
-                let field = b.field();
-                quote! {
-                    #field: #blade,
-                }
-            });
+        let blades = Basis::iter().filter(|b| self.contains(*b)).map(|b| {
+            let blade = b.ident();
+            let field = b.field();
+            quote! {
+                #field: #blade,
+            }
+        });
 
         quote! {
             #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -60,6 +52,15 @@ impl Grade {
 
     pub fn ident(&self) -> Ident {
         Ident::new(&self.to_string(), Span::call_site())
+    }
+
+    pub fn contains(&self, blade: Basis) -> bool {
+        self.k == blade.grade()
+            && match self.ty {
+                GradeType::Whole => true,
+                GradeType::Bulk => !blade.get(0),
+                GradeType::Weight => blade.get(0),
+            }
     }
 }
 
