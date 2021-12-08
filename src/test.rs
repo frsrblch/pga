@@ -90,3 +90,45 @@ fn combine_grades() {
 
     assert_eq!(expected, weight + bulk);
 }
+
+#[test]
+fn mul_assign_grade() {
+    let mut a = Vector {
+        e0: E0(1.0),
+        e1: E1(2.0),
+        e2: E2(3.0),
+        e3: E3(5.0),
+    };
+
+    a *= 2.0;
+
+    let expected = Vector {
+        e0: E0(2.0),
+        e1: E1(4.0),
+        e2: E2(6.0),
+        e3: E3(10.0),
+    };
+
+    assert_eq!(expected, a);
+}
+
+#[test]
+fn div_assign_grade() {
+    let mut a = Vector {
+        e0: E0(2.0),
+        e1: E1(4.0),
+        e2: E2(6.0),
+        e3: E3(10.0),
+    };
+
+    a /= 2.0;
+
+    let expected = Vector {
+        e0: E0(1.0),
+        e1: E1(2.0),
+        e2: E2(3.0),
+        e3: E3(5.0),
+    };
+
+    assert_eq!(expected, a);
+}
