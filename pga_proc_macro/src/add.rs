@@ -60,7 +60,8 @@ fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
 
 fn grade_addition() -> impl Iterator<Item = TokenStream> + 'static {
     Grade::iter().map(|lhs| {
-        let other_grades = Grade::iter().map(move |rhs| add_grades(lhs, rhs));
+        let add_grades = Grade::iter().map(move |rhs| add_grades(lhs, rhs));
+        let sub_grades = Grade::iter().map(move |rhs| sub_grades(lhs, rhs));
 
         quote! {
             impl std::ops::Add<Zero> for #lhs {
@@ -71,7 +72,16 @@ fn grade_addition() -> impl Iterator<Item = TokenStream> + 'static {
                 }
             }
 
-            #(#other_grades)*
+            impl std::ops::Sub<Zero> for #lhs {
+                type Output = #lhs;
+                #[inline]
+                fn sub(self, _: Zero) -> Self {
+                    self
+                }
+            }
+
+            #(#add_grades)*
+            #(#sub_grades)*
         }
     })
 }
@@ -100,6 +110,42 @@ fn add_grades(lhs: Grade, rhs: Grade) -> TokenStream {
                 type Output = #output;
                 #[inline]
                 fn add(self, rhs: #rhs) -> Self::Output {
+                    #output {
+                        #(#fields)*
+                    }
+                }
+            }
+        }
+    } else {
+        // TODO disimilar grade addition = multivector
+        quote! {}
+    }
+}
+
+fn sub_grades(lhs: Grade, rhs: Grade) -> TokenStream {
+    if lhs.k == rhs.k {
+        let output = Grade {
+            k: lhs.k,
+            ty: lhs.ty + rhs.ty,
+        };
+
+        let fields = output.blades().map(|b| {
+            let f = b.field();
+            match (lhs.contains(b), rhs.contains(b)) {
+                (true, true) => quote! { #f: self.#f - rhs.#f, },
+                (true, false) => quote! { #f: self.#f, },
+                (false, true) => quote! { #f: -rhs.#f, },
+                (false, false) => {
+                    unreachable!("add_grades: at least one side should contain each blade")
+                }
+            }
+        });
+
+        quote! {
+            impl std::ops::Sub<#rhs> for #lhs {
+                type Output = #output;
+                #[inline]
+                fn sub(self, rhs: #rhs) -> Self::Output {
                     #output {
                         #(#fields)*
                     }

@@ -10,6 +10,7 @@ mod zero;
 
 mod add;
 mod mul;
+mod neg;
 
 #[proc_macro]
 pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -19,6 +20,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let addition = add::define();
     let multiplication = mul::define();
+    let negation = neg::define();
 
     let tokens = quote! {
         #zero
@@ -27,6 +29,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
         #addition
         #multiplication
+        #negation
     };
 
     tokens.into()
