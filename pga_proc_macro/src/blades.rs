@@ -29,7 +29,7 @@ impl Basis {
             pub struct #self(f64);
 
             impl From<f64> for #self {
-                #[inline]
+
                 fn from(value: f64) -> Self {
                     Self(value)
                 }

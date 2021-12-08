@@ -9,7 +9,7 @@ pub fn define() -> TokenStream {
     quote! {
         impl<T> std::ops::Add<T> for Zero {
             type Output = T;
-            #[inline]
+
             fn add(self, rhs: T) -> Self::Output {
                 rhs
             }
@@ -17,7 +17,7 @@ pub fn define() -> TokenStream {
 
         impl<T> std::ops::Sub<T> for Zero {
             type Output = T;
-            #[inline]
+
             fn sub(self, rhs: T) -> Self::Output {
                 rhs
             }
@@ -33,7 +33,7 @@ fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
         quote! {
             impl std::ops::Add<Zero> for #lhs {
                 type Output = Self;
-                #[inline]
+
                 fn add(self, _: Zero) -> Self::Output {
                     self
                 }
@@ -41,7 +41,7 @@ fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
 
             impl std::ops::Sub<Zero> for #lhs {
                 type Output = Self;
-                #[inline]
+
                 fn sub(self, _: Zero) -> Self::Output {
                     self
                 }
@@ -49,7 +49,7 @@ fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
 
             impl std::ops::Add for #lhs {
                 type Output = Self;
-                #[inline]
+
                 fn add(self, rhs: Self) -> Self {
                     (self.0 + rhs.0).into()
                 }
@@ -57,7 +57,7 @@ fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
 
             impl std::ops::Sub for #lhs {
                 type Output = Self;
-                #[inline]
+
                 fn sub(self, rhs: Self) -> Self {
                     (self.0 - rhs.0).into()
                 }
@@ -74,7 +74,7 @@ fn grade_addition() -> impl Iterator<Item = TokenStream> + 'static {
         quote! {
             impl std::ops::Add<Zero> for #lhs {
                 type Output = #lhs;
-                #[inline]
+
                 fn add(self, _: Zero) -> Self {
                     self
                 }
@@ -82,7 +82,7 @@ fn grade_addition() -> impl Iterator<Item = TokenStream> + 'static {
 
             impl std::ops::Sub<Zero> for #lhs {
                 type Output = #lhs;
-                #[inline]
+
                 fn sub(self, _: Zero) -> Self {
                     self
                 }
@@ -116,7 +116,7 @@ fn add_grades(lhs: Grade, rhs: Grade) -> TokenStream {
         quote! {
             impl std::ops::Add<#rhs> for #lhs {
                 type Output = #output;
-                #[inline]
+
                 fn add(self, rhs: #rhs) -> Self::Output {
                     #output {
                         #(#fields)*
@@ -152,7 +152,7 @@ fn sub_grades(lhs: Grade, rhs: Grade) -> TokenStream {
         quote! {
             impl std::ops::Sub<#rhs> for #lhs {
                 type Output = #output;
-                #[inline]
+
                 fn sub(self, rhs: #rhs) -> Self::Output {
                     #output {
                         #(#fields)*

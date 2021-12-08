@@ -8,7 +8,7 @@ pub fn define() -> TokenStream {
     quote! {
         impl<T> std::ops::Mul<T> for Zero {
             type Output = Zero;
-            #[inline]
+
             fn mul(self, _: T) -> Self::Output {
                 Zero
             }
@@ -33,7 +33,7 @@ fn blade_multiplication() -> impl Iterator<Item = TokenStream> + 'static {
                     quote! {
                         impl std::ops::Mul<#rhs_blade> for #blade {
                             type Output = #output_blade;
-                            #[inline]
+
                             fn mul(self, rhs: #rhs_blade) -> Self::Output {
                                 (#sign self.0 * rhs.0).into()
                             }
@@ -44,7 +44,7 @@ fn blade_multiplication() -> impl Iterator<Item = TokenStream> + 'static {
                     return quote! {
                         impl std::ops::Mul<#rhs_blade> for #blade {
                             type Output = Zero;
-                            #[inline]
+
                             fn mul(self, _: #rhs_blade) -> Self::Output {
                                 Zero
                             }
@@ -57,7 +57,7 @@ fn blade_multiplication() -> impl Iterator<Item = TokenStream> + 'static {
         quote! {
             impl std::ops::Mul<f64> for #blade {
                 type Output = Self;
-                #[inline]
+
                 fn mul(self, rhs: f64) -> Self::Output {
                     (self.0 * rhs).into()
                 }
@@ -65,7 +65,7 @@ fn blade_multiplication() -> impl Iterator<Item = TokenStream> + 'static {
 
             impl std::ops::Mul<#blade> for f64 {
                 type Output = #blade;
-                #[inline]
+
                 fn mul(self, rhs: #blade) -> Self::Output {
                     #blade(self * rhs.0)
                 }

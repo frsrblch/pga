@@ -16,7 +16,7 @@ fn neg_blade(blade: Basis) -> TokenStream {
     quote! {
         impl std::ops::Neg for #blade {
             type Output = Self;
-            #[inline]
+
             fn neg(self) -> Self::Output {
                 (-self.0).into()
             }
@@ -33,7 +33,7 @@ fn neg_grade(grade: Grade) -> TokenStream {
     quote! {
         impl std::ops::Neg for #grade {
             type Output = Self;
-            #[inline]
+
             fn neg(self) -> Self::Output {
                 #grade {
                     #(#fields)*
