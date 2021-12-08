@@ -1,6 +1,6 @@
 extern crate proc_macro;
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens, TokenStreamExt};
 
 mod product;
 

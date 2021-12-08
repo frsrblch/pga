@@ -9,11 +9,29 @@ pub struct Grade {
     pub ty: GradeType,
 }
 
+impl ToTokens for Grade {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append(self.ident());
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum GradeType {
     Whole,
     Bulk,
     Weight,
+}
+
+impl std::ops::Add for GradeType {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        use GradeType::*;
+        match (self, rhs) {
+            (Bulk, Bulk) => Bulk,
+            (Weight, Weight) => Weight,
+            _ => Whole,
+        }
+    }
 }
 
 impl GradeType {
@@ -33,18 +51,16 @@ impl Grade {
             return quote! {};
         }
 
-        let grade = self.ident();
         let blades = Basis::iter().filter(|b| self.contains(*b)).map(|b| {
-            let blade = b.ident();
-            let field = b.field();
+            let f = b.field();
             quote! {
-                #field: #blade,
+                #f: #b,
             }
         });
 
         quote! {
             #[derive(Debug, Default, Copy, Clone, PartialEq)]
-            pub struct #grade {
+            pub struct #self {
                 #(#blades)*
             }
         }
@@ -61,6 +77,10 @@ impl Grade {
                 GradeType::Bulk => !blade.get(0),
                 GradeType::Weight => blade.get(0),
             }
+    }
+
+    pub fn blades(&self) -> impl Iterator<Item = Basis> + '_ {
+        Basis::iter().filter(move |b| self.contains(*b))
     }
 }
 

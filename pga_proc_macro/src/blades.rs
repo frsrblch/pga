@@ -8,6 +8,12 @@ pub struct Basis(pub u8);
 
 pub const E0123: Basis = Basis(0b_00001111);
 
+impl ToTokens for Basis {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append(self.ident());
+    }
+}
+
 impl Basis {
     pub fn iter() -> impl Iterator<Item = Self> + 'static {
         (1..(1 << 4)).map(Self)
@@ -18,12 +24,11 @@ impl Basis {
     }
 
     pub fn define(self) -> TokenStream {
-        let blade = self.ident();
         quote! {
             #[derive(Debug, Default, Copy, Clone, PartialEq, PartialOrd)]
-            pub struct #blade(f64);
+            pub struct #self(f64);
 
-            impl From<f64> for #blade {
+            impl From<f64> for #self {
                 #[inline]
                 fn from(value: f64) -> Self {
                     Self(value)
