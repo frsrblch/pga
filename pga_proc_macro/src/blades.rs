@@ -60,17 +60,13 @@ impl Basis {
         self.0 & flag == flag
     }
 
-    fn set(&mut self, i: u8, value: bool) {
+    fn flip(&mut self, i: u8) {
         if i > 3 {
             panic!("invalid index: {}", i);
         }
 
         let flag = 1 << i;
-        if value {
-            self.0 |= flag;
-        } else {
-            self.0 &= !flag;
-        }
+        self.0 ^= flag;
     }
 }
 
@@ -103,41 +99,19 @@ impl std::ops::Mul for Basis {
 
         let mut flips = 0;
 
-        for b in 1..4 {
-            if self.get(b) && rhs.get(b) {
-                let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
-                let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
-                println!("1st {}: {} {}", b, lhs_count, rhs_count);
-                flips += lhs_count;
-                flips += rhs_count;
-                self.set(b, false);
-                rhs.set(b, false);
-            }
-        }
-
+        // Move rhs bits to lhs
         for b in 0..4 {
-            if self.get(b) {
-                let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
-                let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
-                println!("2nd {}: {} {}", b, lhs_count, rhs_count);
-                flips += lhs_count;
-                flips += rhs_count;
+            if rhs.get(b) {
+                flips += (b + 1..4).filter(|i| self.get(*i)).count();
+                flips += (0..b).filter(|i| rhs.get(*i)).count();
+
+                self.flip(b);
+                rhs.flip(b);
             }
         }
 
-        // for b in 0..4 {
-        //     if rhs.get(b) {
-        //         let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
-        //         let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
-        //         println!("3rd {}: {} {}", b, lhs_count, rhs_count);
-        //         flips += lhs_count;
-        //         flips += rhs_count;
-        //     }
-        // }
-
-        let basis = Basis(self.0 | rhs.0);
         let sign = if flips % 2 == 0 { Sign::Pos } else { Sign::Neg };
-        Product::Value(basis, sign)
+        Product::Value(self, sign)
     }
 }
 
@@ -168,20 +142,6 @@ mod test {
             println!("{}", b);
         }
         assert_eq!(15, Basis::iter().count());
-    }
-
-    #[test]
-    fn set_true() {
-        let mut basis = E1;
-        basis.set(0, true);
-        assert_eq!(Basis(0b_00000011), basis);
-    }
-
-    #[test]
-    fn set_false() {
-        let mut basis = Basis(0b_00000011);
-        basis.set(0, false);
-        assert_eq!(E1, basis);
     }
 
     #[test]
