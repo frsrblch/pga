@@ -14,6 +14,7 @@ mod multivector;
 mod zero;
 
 mod add;
+mod bulk_weight;
 mod mul;
 mod neg;
 mod rev;
@@ -29,6 +30,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let multiplication = mul::define();
     let negation = neg::define();
     let reverse = rev::define();
+    let bulk_weight = bulk_weight::define();
 
     let tokens = quote! {
         #zero
@@ -40,6 +42,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #multiplication
         #negation
         #reverse
+        #bulk_weight
     };
 
     // std::fs::write("tokens.txt", tokens.to_string()).ok();
