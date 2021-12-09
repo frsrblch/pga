@@ -107,6 +107,7 @@ impl std::ops::Mul for Basis {
             if self.get(b) && rhs.get(b) {
                 let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
                 let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
+                println!("1st {}: {} {}", b, lhs_count, rhs_count);
                 flips += lhs_count;
                 flips += rhs_count;
                 self.set(b, false);
@@ -117,11 +118,22 @@ impl std::ops::Mul for Basis {
         for b in 0..4 {
             if self.get(b) {
                 let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
-                let rhs_count = (0..b + 1).filter(|i| rhs.get(*i)).count();
+                let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
+                println!("2nd {}: {} {}", b, lhs_count, rhs_count);
                 flips += lhs_count;
                 flips += rhs_count;
             }
         }
+
+        // for b in 0..4 {
+        //     if rhs.get(b) {
+        //         let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
+        //         let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
+        //         println!("3rd {}: {} {}", b, lhs_count, rhs_count);
+        //         flips += lhs_count;
+        //         flips += rhs_count;
+        //     }
+        // }
 
         let basis = Basis(self.0 | rhs.0);
         let sign = if flips % 2 == 0 { Sign::Pos } else { Sign::Neg };
@@ -133,14 +145,22 @@ impl std::ops::Mul for Basis {
 mod test {
     use super::*;
 
+    pub const S: Basis = Basis(0);
     pub const E0: Basis = Basis(1);
     pub const E1: Basis = Basis(1 << 1);
     pub const E2: Basis = Basis(1 << 2);
     pub const E3: Basis = Basis(1 << 3);
+    pub const E01: Basis = Basis(0b_00000011);
+    pub const E02: Basis = Basis(0b_00000101);
+    pub const E03: Basis = Basis(0b_00001001);
     pub const E12: Basis = Basis(0b_00000110);
+    pub const E13: Basis = Basis(0b_00001010);
     pub const E23: Basis = Basis(0b_00001100);
+    pub const E012: Basis = Basis(0b_00000111);
+    pub const E013: Basis = Basis(0b_00001011);
     pub const E023: Basis = Basis(0b_00001101);
     pub const E123: Basis = Basis(0b_00001110);
+    pub const E0123: Basis = Basis(0b_00001111);
 
     #[test]
     fn iter_all_blades() {
@@ -233,5 +253,45 @@ mod test {
     fn mul_e12_e123() {
         let expected = Product::Value(E3, Sign::Neg);
         assert_eq!(expected, E12 * E123);
+    }
+
+    #[test]
+    fn mul_e1_lhs() {
+        use Sign::*;
+        assert_eq!(Product::Value(E01, Neg), E1 * E0);
+        assert_eq!(Product::Value(S, Pos), E1 * E1);
+        assert_eq!(Product::Value(E12, Pos), E1 * E2);
+        assert_eq!(Product::Value(E13, Pos), E1 * E3);
+        assert_eq!(Product::Value(E0, Neg), E1 * E01);
+        assert_eq!(Product::Value(E012, Neg), E1 * E02);
+        assert_eq!(Product::Value(E013, Neg), E1 * E03);
+        assert_eq!(Product::Value(E2, Pos), E1 * E12);
+        assert_eq!(Product::Value(E3, Pos), E1 * E13);
+        assert_eq!(Product::Value(E123, Pos), E1 * E23);
+        assert_eq!(Product::Value(E02, Neg), E1 * E012);
+        assert_eq!(Product::Value(E03, Neg), E1 * E013);
+        assert_eq!(Product::Value(E0123, Neg), E1 * E023);
+        assert_eq!(Product::Value(E23, Pos), E1 * E123);
+        assert_eq!(Product::Value(E023, Neg), E1 * E0123);
+    }
+
+    #[test]
+    fn mul_e1_rhs() {
+        use Sign::*;
+        assert_eq!(Product::Value(E012, Neg), E02 * E1);
+        assert_eq!(Product::Value(E01, Pos), E0 * E1);
+        assert_eq!(Product::Value(S, Pos), E1 * E1);
+        assert_eq!(Product::Value(E12, Neg), E2 * E1);
+        assert_eq!(Product::Value(E13, Neg), E3 * E1);
+        assert_eq!(Product::Value(E0, Pos), E01 * E1);
+        assert_eq!(Product::Value(E013, Neg), E03 * E1);
+        assert_eq!(Product::Value(E2, Neg), E12 * E1);
+        assert_eq!(Product::Value(E3, Neg), E13 * E1);
+        assert_eq!(Product::Value(E123, Pos), E23 * E1);
+        assert_eq!(Product::Value(E02, Neg), E012 * E1);
+        assert_eq!(Product::Value(E03, Neg), E013 * E1);
+        assert_eq!(Product::Value(E0123, Pos), E023 * E1);
+        assert_eq!(Product::Value(E23, Pos), E123 * E1);
+        assert_eq!(Product::Value(E023, Pos), E0123 * E1);
     }
 }
