@@ -97,20 +97,20 @@ impl std::ops::Mul for Basis {
             return Product::Zero;
         }
 
-        let mut flips = 0;
+        let mut swaps = 0;
 
         // Move rhs bits to lhs
         for b in 0..4 {
             if rhs.get(b) {
-                flips += (b + 1..4).filter(|i| self.get(*i)).count();
-                flips += (0..b).filter(|i| rhs.get(*i)).count();
+                swaps += (b + 1..4).filter(|i| self.get(*i)).count();
+                swaps += (0..b).filter(|i| rhs.get(*i)).count();
 
                 self.flip(b);
                 rhs.flip(b);
             }
         }
 
-        let sign = if flips % 2 == 0 { Sign::Pos } else { Sign::Neg };
+        let sign = if swaps % 2 == 0 { Sign::Pos } else { Sign::Neg };
         Product::Value(self, sign)
     }
 }
