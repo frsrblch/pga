@@ -1,5 +1,4 @@
 use super::*;
-use crate::blades::Basis;
 use proc_macro2::{Ident, Span};
 use std::fmt::Display;
 

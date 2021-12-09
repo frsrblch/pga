@@ -1,5 +1,4 @@
-use proc_macro2::TokenStream;
-use quote::quote;
+use super::*;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Product<T> {
@@ -13,11 +12,10 @@ pub enum Sign {
     Neg,
 }
 
-impl Sign {
-    pub fn tokens(&self) -> TokenStream {
-        match self {
-            Self::Neg => quote! { - },
-            Self::Pos => quote! {},
+impl ToTokens for Sign {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        if let Sign::Neg = *self {
+            tokens.append_all(quote! {-});
         }
     }
 }

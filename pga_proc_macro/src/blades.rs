@@ -1,5 +1,4 @@
 use super::*;
-use crate::product::{Product, Sign};
 use proc_macro2::{Ident, Span};
 use std::fmt::{Display, Formatter};
 
@@ -29,7 +28,6 @@ impl Basis {
             pub struct #self(f64);
 
             impl From<f64> for #self {
-
                 fn from(value: f64) -> Self {
                     Self(value)
                 }
@@ -107,22 +105,26 @@ impl std::ops::Mul for Basis {
 
         for b in 1..4 {
             if self.get(b) && rhs.get(b) {
-                flips += (b + 1..4).filter(|i| self.get(*i)).count();
-                flips += (0..b + 1).filter(|i| rhs.get(*i)).count();
+                let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
+                let rhs_count = (0..b).filter(|i| rhs.get(*i)).count();
+                flips += lhs_count;
+                flips += rhs_count;
                 self.set(b, false);
                 rhs.set(b, false);
             }
         }
 
         for b in 0..4 {
-            if rhs.get(b) {
-                flips += (b + 1..4).filter(|i| self.get(*i)).count();
-                flips += (0..b + 1).filter(|i| rhs.get(*i)).count();
+            if self.get(b) {
+                let lhs_count = (b + 1..4).filter(|i| self.get(*i)).count();
+                let rhs_count = (0..b + 1).filter(|i| rhs.get(*i)).count();
+                flips += lhs_count;
+                flips += rhs_count;
             }
         }
 
         let basis = Basis(self.0 | rhs.0);
-        let sign = if flips % 2 == 0 { Sign::Neg } else { Sign::Pos };
+        let sign = if flips % 2 == 0 { Sign::Pos } else { Sign::Neg };
         Product::Value(basis, sign)
     }
 }
@@ -192,6 +194,12 @@ mod test {
     }
 
     #[test]
+    fn mul_e12_e12() {
+        let expected = Product::Value(Basis::default(), Sign::Neg);
+        assert_eq!(expected, E12 * E12);
+    }
+
+    #[test]
     fn mul_e123_e123() {
         let expected = Product::Value(Basis::default(), Sign::Neg);
         assert_eq!(expected, E123 * E123);
@@ -199,7 +207,7 @@ mod test {
 
     #[test]
     fn mul_e123_e0123() {
-        let expected = Product::Value(E0, Sign::Neg);
+        let expected = Product::Value(E0, Sign::Pos);
         assert_eq!(expected, E123 * E0123);
     }
 

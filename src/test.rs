@@ -132,3 +132,10 @@ fn div_assign_grade() {
 
     assert_eq!(expected, a);
 }
+
+#[test]
+fn mul_blades() {
+    assert_eq!(E12(1.0), E1(1.0) * E2(1.0));
+    assert_eq!(E2(-1.0), E12(1.0) * E1(1.0));
+    assert_eq!(-1.0, E12(1.0) * E12(1.0));
+}

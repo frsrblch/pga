@@ -4,6 +4,7 @@ use quote::{quote, ToTokens, TokenStreamExt};
 
 use blades::Basis;
 use grades::Grade;
+use product::{Product, Sign};
 
 mod product;
 

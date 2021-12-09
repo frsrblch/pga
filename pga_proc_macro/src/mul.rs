@@ -1,7 +1,5 @@
 use super::*;
 
-use crate::product::Product;
-
 pub fn define() -> TokenStream {
     let zero = zero_multiplication();
     let blades = Basis::iter().map(blade_multiplication);
@@ -46,7 +44,6 @@ fn blade_multiplication(lhs: Basis) -> TokenStream {
     let other_blades = Basis::iter().map(move |rhs| match lhs * rhs {
         Product::Value(output, sign) => {
             let output_blade = output.ident();
-            let sign = sign.tokens();
 
             quote! {
                 impl std::ops::Mul<#rhs> for #lhs {
