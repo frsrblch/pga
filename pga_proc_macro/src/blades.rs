@@ -1,10 +1,12 @@
 use super::*;
+use crate::grades::GradeType;
 use proc_macro2::{Ident, Span};
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct Blade(pub u8);
 
+pub const S: Blade = Blade(0);
 pub const E0123: Blade = Blade(0b_00001111);
 
 impl ToTokens for Blade {
@@ -77,6 +79,14 @@ impl Blade {
         let flag = 1 << i;
         self.0 ^= flag;
     }
+
+    pub fn grade_type(self) -> GradeType {
+        if self.get(0) {
+            GradeType::Weight
+        } else {
+            GradeType::Bulk
+        }
+    }
 }
 
 impl Display for Blade {
@@ -128,7 +138,6 @@ impl std::ops::Mul for Blade {
 mod test {
     use super::*;
 
-    pub const S: Blade = Blade(0);
     pub const E0: Blade = Blade(1);
     pub const E1: Blade = Blade(1 << 1);
     pub const E2: Blade = Blade(1 << 2);

@@ -16,6 +16,7 @@ mod zero;
 mod add;
 mod bulk_weight;
 mod comp;
+mod geo;
 mod mul;
 mod neg;
 mod rev;
@@ -33,6 +34,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let complement = comp::define();
     let reverse = rev::define();
     let bulk_weight = bulk_weight::define();
+    let geometric = geo::define();
 
     let tokens = quote! {
         #zero
@@ -46,6 +48,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #complement
         #reverse
         #bulk_weight
+        #geometric
     };
 
     std::fs::write("./target/tokens.txt", tokens.to_string()).ok();

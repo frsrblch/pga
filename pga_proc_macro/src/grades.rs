@@ -14,6 +14,23 @@ impl ToTokens for Grade {
     }
 }
 
+impl std::ops::Add for Grade {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Grade {
+            k: self.k,
+            ty: self.ty + rhs.ty,
+        }
+    }
+}
+
+impl std::ops::Add<Grade> for Option<Grade> {
+    type Output = Self;
+    fn add(self, rhs: Grade) -> Self::Output {
+        todo!()
+    }
+}
+
 impl std::ops::Not for Grade {
     type Output = Self;
     fn not(self) -> Self {
