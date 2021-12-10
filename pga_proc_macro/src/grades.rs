@@ -14,6 +14,16 @@ impl ToTokens for Grade {
     }
 }
 
+impl std::ops::Not for Grade {
+    type Output = Self;
+    fn not(self) -> Self {
+        Grade {
+            k: 4 - self.k,
+            ty: !self.ty,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum GradeType {
     Whole,
@@ -29,6 +39,17 @@ impl std::ops::Add for GradeType {
             (Bulk, Bulk) => Bulk,
             (Weight, Weight) => Weight,
             _ => Whole,
+        }
+    }
+}
+
+impl std::ops::Not for GradeType {
+    type Output = Self;
+    fn not(self) -> Self {
+        match self {
+            Self::Whole => Self::Whole,
+            Self::Bulk => Self::Weight,
+            Self::Weight => Self::Bulk,
         }
     }
 }

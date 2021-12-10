@@ -15,6 +15,7 @@ mod zero;
 
 mod add;
 mod bulk_weight;
+mod comp;
 mod mul;
 mod neg;
 mod rev;
@@ -29,6 +30,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let addition = add::define();
     let multiplication = mul::define();
     let negation = neg::define();
+    let complement = comp::define();
     let reverse = rev::define();
     let bulk_weight = bulk_weight::define();
 
@@ -41,6 +43,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #addition
         #multiplication
         #negation
+        #complement
         #reverse
         #bulk_weight
     };

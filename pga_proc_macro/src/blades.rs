@@ -13,6 +13,13 @@ impl ToTokens for Basis {
     }
 }
 
+impl std::ops::Not for Basis {
+    type Output = Self;
+    fn not(self) -> Self {
+        Basis(self.0 ^ 0b_00001111)
+    }
+}
+
 impl Basis {
     pub fn iter() -> impl Iterator<Item = Self> + 'static {
         (1..(1 << 4)).map(Self)
@@ -253,5 +260,11 @@ mod test {
         assert_eq!(Product::Value(E0123, Pos), E023 * E1);
         assert_eq!(Product::Value(E23, Pos), E123 * E1);
         assert_eq!(Product::Value(E023, Pos), E0123 * E1);
+    }
+
+    #[test]
+    fn not_test() {
+        assert_eq!(E0123, !S);
+        assert_eq!(S, !E0123);
     }
 }
