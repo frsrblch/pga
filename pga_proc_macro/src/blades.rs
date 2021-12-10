@@ -3,24 +3,24 @@ use proc_macro2::{Ident, Span};
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
-pub struct Basis(pub u8);
+pub struct Blade(pub u8);
 
-pub const E0123: Basis = Basis(0b_00001111);
+pub const E0123: Blade = Blade(0b_00001111);
 
-impl ToTokens for Basis {
+impl ToTokens for Blade {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append(self.ident());
     }
 }
 
-impl std::ops::Not for Basis {
+impl std::ops::Not for Blade {
     type Output = Self;
     fn not(self) -> Self {
-        Basis(self.0 ^ 0b_00001111)
+        Blade(self.0 ^ 0b_00001111)
     }
 }
 
-impl Basis {
+impl Blade {
     pub fn iter() -> impl Iterator<Item = Self> + 'static {
         (1..(1 << 4)).map(Self)
     }
@@ -47,7 +47,7 @@ impl Basis {
     }
 
     pub fn field(&self) -> Ident {
-        if *self == Basis::default() {
+        if *self == Blade::default() {
             panic!("f64 should not be used as a field");
         }
 
@@ -77,9 +77,9 @@ impl Basis {
     }
 }
 
-impl Display for Basis {
+impl Display for Blade {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        if *self == Basis::default() {
+        if *self == Blade::default() {
             return write!(f, "f64");
         }
 
@@ -96,7 +96,7 @@ impl Display for Basis {
     }
 }
 
-impl std::ops::Mul for Basis {
+impl std::ops::Mul for Blade {
     type Output = Product<Self>;
 
     fn mul(mut self, mut rhs: Self) -> Self::Output {
@@ -126,29 +126,29 @@ impl std::ops::Mul for Basis {
 mod test {
     use super::*;
 
-    pub const S: Basis = Basis(0);
-    pub const E0: Basis = Basis(1);
-    pub const E1: Basis = Basis(1 << 1);
-    pub const E2: Basis = Basis(1 << 2);
-    pub const E3: Basis = Basis(1 << 3);
-    pub const E01: Basis = Basis(0b_00000011);
-    pub const E02: Basis = Basis(0b_00000101);
-    pub const E03: Basis = Basis(0b_00001001);
-    pub const E12: Basis = Basis(0b_00000110);
-    pub const E13: Basis = Basis(0b_00001010);
-    pub const E23: Basis = Basis(0b_00001100);
-    pub const E012: Basis = Basis(0b_00000111);
-    pub const E013: Basis = Basis(0b_00001011);
-    pub const E023: Basis = Basis(0b_00001101);
-    pub const E123: Basis = Basis(0b_00001110);
-    pub const E0123: Basis = Basis(0b_00001111);
+    pub const S: Blade = Blade(0);
+    pub const E0: Blade = Blade(1);
+    pub const E1: Blade = Blade(1 << 1);
+    pub const E2: Blade = Blade(1 << 2);
+    pub const E3: Blade = Blade(1 << 3);
+    pub const E01: Blade = Blade(0b_00000011);
+    pub const E02: Blade = Blade(0b_00000101);
+    pub const E03: Blade = Blade(0b_00001001);
+    pub const E12: Blade = Blade(0b_00000110);
+    pub const E13: Blade = Blade(0b_00001010);
+    pub const E23: Blade = Blade(0b_00001100);
+    pub const E012: Blade = Blade(0b_00000111);
+    pub const E013: Blade = Blade(0b_00001011);
+    pub const E023: Blade = Blade(0b_00001101);
+    pub const E123: Blade = Blade(0b_00001110);
+    pub const E0123: Blade = Blade(0b_00001111);
 
     #[test]
     fn iter_all_blades() {
-        for b in Basis::iter() {
+        for b in Blade::iter() {
             println!("{}", b);
         }
-        assert_eq!(15, Basis::iter().count());
+        assert_eq!(15, Blade::iter().count());
     }
 
     #[test]
@@ -182,13 +182,13 @@ mod test {
 
     #[test]
     fn mul_e12_e12() {
-        let expected = Product::Value(Basis::default(), Sign::Neg);
+        let expected = Product::Value(Blade::default(), Sign::Neg);
         assert_eq!(expected, E12 * E12);
     }
 
     #[test]
     fn mul_e123_e123() {
-        let expected = Product::Value(Basis::default(), Sign::Neg);
+        let expected = Product::Value(Blade::default(), Sign::Neg);
         assert_eq!(expected, E123 * E123);
     }
 
@@ -206,13 +206,13 @@ mod test {
 
     #[test]
     fn mul_e123_e023() {
-        let expected = Product::Value(Basis(0b_00000011), Sign::Pos);
+        let expected = Product::Value(Blade(0b_00000011), Sign::Pos);
         assert_eq!(expected, E123 * E023);
     }
 
     #[test]
     fn mul_e023_e123() {
-        let expected = Product::Value(Basis(0b_00000011), Sign::Neg);
+        let expected = Product::Value(Blade(0b_00000011), Sign::Neg);
         assert_eq!(expected, E023 * E123);
     }
 

@@ -1,9 +1,9 @@
 use super::*;
-use crate::blades::Basis;
+use crate::blades::Blade;
 use crate::grades::Grade;
 
 pub fn define() -> TokenStream {
-    let neg_blades = Basis::iter().map(neg_blade);
+    let neg_blades = Blade::iter().map(neg_blade);
     let neg_grades = Grade::iter().map(neg_grade);
 
     quote! {
@@ -12,7 +12,7 @@ pub fn define() -> TokenStream {
     }
 }
 
-fn neg_blade(blade: Basis) -> TokenStream {
+fn neg_blade(blade: Blade) -> TokenStream {
     quote! {
         impl std::ops::Neg for #blade {
             type Output = Self;

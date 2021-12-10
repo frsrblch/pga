@@ -71,7 +71,7 @@ impl Grade {
             return quote! {};
         }
 
-        let blades = Basis::iter().filter(|b| self.contains(*b)).map(|b| {
+        let blades = Blade::iter().filter(|b| self.contains(*b)).map(|b| {
             let f = b.field();
             quote! {
                 #f: #b,
@@ -90,7 +90,7 @@ impl Grade {
         Ident::new(&self.to_string(), Span::call_site())
     }
 
-    pub fn contains(&self, blade: Basis) -> bool {
+    pub fn contains(&self, blade: Blade) -> bool {
         self.k == blade.grade()
             && match self.ty {
                 GradeType::Whole => true,
@@ -99,8 +99,8 @@ impl Grade {
             }
     }
 
-    pub fn blades(&self) -> impl Iterator<Item = Basis> + '_ {
-        Basis::iter().filter(move |b| self.contains(*b))
+    pub fn blades(&self) -> impl Iterator<Item = Blade> + '_ {
+        Blade::iter().filter(move |b| self.contains(*b))
     }
 }
 
@@ -108,7 +108,7 @@ impl Display for Grade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let name = match self.k {
             0 => return write!(f, "f64"),
-            4 => return write!(f, "{}", Basis(0b_00001111)),
+            4 => return write!(f, "{}", Blade(0b_00001111)),
             1 => "Vector",
             2 => "Bivector",
             3 => "Trivector",

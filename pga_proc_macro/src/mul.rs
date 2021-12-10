@@ -2,7 +2,7 @@ use super::*;
 
 pub fn define() -> TokenStream {
     let zero = zero_multiplication();
-    let blades = Basis::iter().map(blade_multiplication);
+    let blades = Blade::iter().map(blade_multiplication);
     let grades = Grade::iter().map(grade_multiplication);
 
     quote! {
@@ -40,8 +40,8 @@ fn zero_multiplication() -> TokenStream {
     }
 }
 
-fn blade_multiplication(lhs: Basis) -> TokenStream {
-    let other_blades = Basis::iter().map(move |rhs| match lhs * rhs {
+fn blade_multiplication(lhs: Blade) -> TokenStream {
+    let other_blades = Blade::iter().map(move |rhs| match lhs * rhs {
         Product::Value(output, sign) => {
             let output_blade = output.ident();
 

@@ -1,5 +1,5 @@
 use super::*;
-use crate::blades::Basis;
+use crate::blades::Blade;
 use crate::grades::Grade;
 
 pub fn define() -> TokenStream {
@@ -29,7 +29,7 @@ pub fn define() -> TokenStream {
 }
 
 fn blade_addition() -> impl Iterator<Item = TokenStream> + 'static {
-    Basis::iter().map(|lhs| {
+    Blade::iter().map(|lhs| {
         quote! {
             impl std::ops::Add<Zero> for #lhs {
                 type Output = Self;

@@ -2,7 +2,7 @@ use super::*;
 
 pub fn define() -> TokenStream {
     let f64 = f64_comp();
-    let blades = Basis::define_comp();
+    let blades = Blade::define_comp();
     let grades = Grade::define_comp();
 
     quote! {
@@ -40,10 +40,10 @@ fn f64_comp() -> TokenStream {
     }
 }
 
-impl Basis {
+impl Blade {
     fn define_comp() -> TokenStream {
-        let l_comp = Basis::iter().map(Basis::l_comp);
-        let r_comp = Basis::iter().map(Basis::r_comp);
+        let l_comp = Blade::iter().map(Blade::l_comp);
+        let r_comp = Blade::iter().map(Blade::r_comp);
 
         quote! {
             #(#l_comp)*

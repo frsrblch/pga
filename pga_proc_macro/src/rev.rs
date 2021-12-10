@@ -37,8 +37,8 @@ fn f64_reverse() -> TokenStream {
 }
 
 fn blades_reverse() -> TokenStream {
-    let reverse = Basis::iter().map(blade_reverse);
-    let antireverse = Basis::iter().map(blade_antireverse);
+    let reverse = Blade::iter().map(blade_reverse);
+    let antireverse = Blade::iter().map(blade_antireverse);
 
     quote! {
         #(#reverse)*
@@ -46,7 +46,7 @@ fn blades_reverse() -> TokenStream {
     }
 }
 
-fn blade_reverse(blade: Basis) -> TokenStream {
+fn blade_reverse(blade: Blade) -> TokenStream {
     let sign = match blade.grade() {
         0 | 1 | 4 => Sign::Pos,
         _ => Sign::Neg,
@@ -61,7 +61,7 @@ fn blade_reverse(blade: Basis) -> TokenStream {
     }
 }
 
-fn blade_antireverse(blade: Basis) -> TokenStream {
+fn blade_antireverse(blade: Blade) -> TokenStream {
     let sign = match blade.grade() {
         0 | 3 | 4 => Sign::Pos,
         _ => Sign::Neg,
