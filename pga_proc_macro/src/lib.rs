@@ -48,7 +48,7 @@ pub fn pga(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #bulk_weight
     };
 
-    // std::fs::write("tokens.txt", tokens.to_string()).ok();
+    std::fs::write("./target/tokens.txt", tokens.to_string()).ok();
 
     tokens.into()
 }
