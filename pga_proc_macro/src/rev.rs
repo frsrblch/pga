@@ -2,8 +2,8 @@ use super::*;
 
 pub fn define() -> TokenStream {
     let f64 = f64_reverse();
-    let blades = blades_reverse();
-    let grades = grades_reverse();
+    let blades = Blade::iter().map(Blade::reverse);
+    let grades = Grade::iter().map(Grade::reverse);
 
     quote! {
         pub trait Reverse {
@@ -14,9 +14,19 @@ pub fn define() -> TokenStream {
             fn antirev(self) -> Self;
         }
 
+        impl<T, U> Antireverse for T
+        where
+            T: LeftComp<Output=U>,
+            U: Reverse + RightComp<Output=T>,
+        {
+            fn antirev(self) -> Self {
+                self.l_comp().rev().r_comp()
+            }
+        }
+
         #f64
-        #blades
-        #grades
+        #(#blades)*
+        #(#grades)*
     }
 }
 
@@ -27,93 +37,39 @@ fn f64_reverse() -> TokenStream {
                 self
             }
         }
-
-        impl Antireverse for f64 {
-            fn antirev(self) -> Self {
-                self
-            }
-        }
     }
 }
 
-fn blades_reverse() -> TokenStream {
-    let reverse = Blade::iter().map(blade_reverse);
-    let antireverse = Blade::iter().map(blade_antireverse);
+impl Blade {
+    fn reverse(self) -> TokenStream {
+        let sign = match self.grade() {
+            0 | 1 | 4 => Sign::Pos,
+            _ => Sign::Neg,
+        };
 
-    quote! {
-        #(#reverse)*
-        #(#antireverse)*
-    }
-}
-
-fn blade_reverse(blade: Blade) -> TokenStream {
-    let sign = match blade.grade() {
-        0 | 1 | 4 => Sign::Pos,
-        _ => Sign::Neg,
-    };
-
-    quote! {
-        impl Reverse for #blade {
-            fn rev(self) -> Self {
-                #sign self
-            }
-        }
-    }
-}
-
-fn blade_antireverse(blade: Blade) -> TokenStream {
-    let sign = match blade.grade() {
-        0 | 3 | 4 => Sign::Pos,
-        _ => Sign::Neg,
-    };
-
-    quote! {
-        impl Antireverse for #blade {
-            fn antirev(self) -> Self {
-                #sign self
-            }
-        }
-    }
-}
-
-fn grades_reverse() -> TokenStream {
-    let reverse = Grade::iter().map(grade_reverse);
-    let antireverse = Grade::iter().map(grade_antireverse);
-
-    quote! {
-        #(#reverse)*
-        #(#antireverse)*
-    }
-}
-
-fn grade_reverse(grade: Grade) -> TokenStream {
-    let fields = grade.blades().map(|b| {
-        let f = b.field();
-        quote! { #f: self.#f.rev(), }
-    });
-
-    quote! {
-        impl Reverse for #grade {
-            fn rev(self) -> Self {
-                #grade {
-                    #(#fields)*
+        quote! {
+            impl Reverse for #self {
+                fn rev(self) -> Self {
+                    #sign self
                 }
             }
         }
     }
 }
 
-fn grade_antireverse(grade: Grade) -> TokenStream {
-    let fields = grade.blades().map(|b| {
-        let f = b.field();
-        quote! { #f: self.#f.antirev(), }
-    });
+impl Grade {
+    fn reverse(self) -> TokenStream {
+        let fields = self.blades().map(|b| {
+            let f = b.field();
+            quote! { #f: self.#f.rev(), }
+        });
 
-    quote! {
-        impl Antireverse for #grade {
-            fn antirev(self) -> Self {
-                #grade {
-                    #(#fields)*
+        quote! {
+            impl Reverse for #self {
+                fn rev(self) -> Self {
+                    #self {
+                        #(#fields)*
+                    }
                 }
             }
         }
