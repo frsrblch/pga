@@ -103,6 +103,7 @@ impl Geometric<Self> for Grade {
         for lhs_blade in self.blades() {
             for rhs_blade in rhs.blades() {
                 if let Product::Value(output, _) = lhs_blade * rhs_blade {
+                    // TODO impl Add<Grade> for Multivector
                     match output.grade() {
                         0 => mv.s = Some(()),
                         1 => {
