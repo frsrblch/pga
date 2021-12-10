@@ -22,7 +22,9 @@ impl std::ops::Not for Blade {
 
 impl Blade {
     pub fn iter() -> impl Iterator<Item = Self> + 'static {
-        (1..(1 << 4)).map(Self)
+        let bulk = (1..(1 << 4)).map(Self).filter(|b| !b.get(0));
+        let weight = (1..(1 << 4)).map(Self).filter(|b| b.get(0));
+        Iterator::chain(weight, bulk)
     }
 
     pub fn grade(&self) -> u8 {
