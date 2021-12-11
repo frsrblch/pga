@@ -24,10 +24,20 @@ impl std::ops::Add for Grade {
     }
 }
 
-impl std::ops::Add<Grade> for Option<Grade> {
+impl std::ops::Add<GradeType> for Option<GradeType> {
     type Output = Self;
-    fn add(self, rhs: Grade) -> Self::Output {
-        todo!()
+    fn add(self, rhs: GradeType) -> Self::Output {
+        if let Some(lhs) = self {
+            Some(lhs + rhs)
+        } else {
+            Some(rhs)
+        }
+    }
+}
+
+impl std::ops::AddAssign<GradeType> for Option<GradeType> {
+    fn add_assign(&mut self, rhs: GradeType) {
+        *self = *self + rhs;
     }
 }
 

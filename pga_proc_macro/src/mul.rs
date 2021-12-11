@@ -110,6 +110,16 @@ fn blade_multiplication(lhs: Blade) -> TokenStream {
 }
 
 fn grade_multiplication(grade: Grade) -> TokenStream {
+    let fields_mul = grade.blades().map(|b| {
+        let f = b.field();
+        quote! { #f: self.#f * rhs, }
+    });
+
+    let fields_div = grade.blades().map(|b| {
+        let f = b.field();
+        quote! { #f: self.#f / rhs, }
+    });
+
     let fields_mul_assign = grade.blades().map(|b| {
         let f = b.field();
         quote! { self.#f *= rhs; }
@@ -121,6 +131,26 @@ fn grade_multiplication(grade: Grade) -> TokenStream {
     });
 
     quote! {
+        impl std::ops::Mul<f64> for #grade {
+            type Output = Self;
+
+            fn mul(self, rhs: f64) -> Self::Output {
+                #grade {
+                    #(#fields_mul)*
+                }
+            }
+        }
+
+        impl std::ops::Div<f64> for #grade {
+            type Output = Self;
+
+            fn div(self, rhs: f64) -> Self::Output {
+                #grade {
+                    #(#fields_div)*
+                }
+            }
+        }
+
         impl std::ops::MulAssign<f64> for #grade {
             fn mul_assign(&mut self, rhs: f64) {
                 #(#fields_mul_assign)*

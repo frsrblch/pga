@@ -1,7 +1,8 @@
 use crate::blades::{E0123, S};
+use crate::geo::GeoProd;
 use crate::grades::GradeType;
 use crate::*;
-use proc_macro2::{Ident, Span};
+use std::ops::Mul;
 
 // TODO consider having types for even- and odd-graded elements (motors and flectors)
 
@@ -27,10 +28,74 @@ pub struct Multivector {
     pub a: Option<()>,
 }
 
-// TODO Multivector needs to return a
 impl ToTokens for Multivector {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append_all(self.token_stream());
+        use proc_macro2::{Ident, Span, TokenStream};
+
+        match self.count_some() {
+            0 | 1 => panic!("use Grade/Blade ident"),
+            _ => {
+                let mv = Ident::new("Multivector", Span::call_site());
+
+                let s = if self.s.is_some() {
+                    Ident::new("f64", Span::call_site())
+                } else {
+                    zero::ident()
+                };
+
+                let v = if let Some(ty) = self.v {
+                    Grade { k: 1, ty }.ident()
+                } else {
+                    zero::ident()
+                };
+
+                let b = if let Some(ty) = self.b {
+                    Grade { k: 2, ty }.ident()
+                } else {
+                    zero::ident()
+                };
+
+                let t = if let Some(ty) = self.t {
+                    Grade { k: 3, ty }.ident()
+                } else {
+                    zero::ident()
+                };
+
+                let a = if self.a.is_some() {
+                    E0123.ident()
+                } else {
+                    zero::ident()
+                };
+
+                tokens.append_all(quote! {
+                    #mv < #s, #v, #b, #t, #a >
+                });
+            }
+        }
+    }
+}
+
+impl std::iter::Sum<Product<Blade>> for Multivector {
+    fn sum<I: Iterator<Item = Product<Blade>>>(iter: I) -> Self {
+        iter.fold(Multivector::default(), |mv, b| mv + b)
+    }
+}
+
+impl std::ops::Add<Product<Blade>> for Multivector {
+    type Output = Self;
+    fn add(mut self, rhs: Product<Blade>) -> Self {
+        if let Product::Value(rhs, _) = rhs {
+            match rhs.grade() {
+                0 => self.s = Some(()),
+                4 => self.a = Some(()),
+                1 => self.v += rhs.grade_type(),
+                2 => self.b += rhs.grade_type(),
+                3 => self.t += rhs.grade_type(),
+                _ => unreachable!(),
+            }
+        }
+
+        self
     }
 }
 
@@ -43,18 +108,25 @@ impl Multivector {
             + self.a.is_some() as usize
     }
 
-    fn token_stream(&self) -> proc_macro2::TokenStream {
-        let mut stream = proc_macro2::TokenStream::new();
-
+    pub fn geo_prod(&self) -> GeoProd {
         match self.count_some() {
-            0 => stream.append(zero::ident()),
-            1 => todo!("single grade"),
-            _ => {
-                stream.append(proc_macro2::Ident::new("Multivector", Span::call_site()));
-                todo!("generic types");
+            0 => GeoProd::Zero,
+            1 => {
+                if self.s.is_some() {
+                    GeoProd::Blade(S)
+                } else if self.a.is_some() {
+                    GeoProd::Blade(E0123)
+                } else if let Some(ty) = self.v {
+                    GeoProd::Grade(Grade { k: 1, ty })
+                } else if let Some(ty) = self.b {
+                    GeoProd::Grade(Grade { k: 2, ty })
+                } else if let Some(ty) = self.t {
+                    GeoProd::Grade(Grade { k: 3, ty })
+                } else {
+                    unreachable!()
+                }
             }
+            _ => GeoProd::Multi(*self),
         }
-
-        stream
     }
 }

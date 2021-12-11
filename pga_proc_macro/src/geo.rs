@@ -1,10 +1,12 @@
 use super::*;
+use crate::grades::GradeType;
 use crate::multivector::Multivector;
+use std::ops::Mul;
 
 pub fn define() -> TokenStream {
     let f64 = define_f64();
     let blades = Blade::iter().map(Blade::geo);
-    let grades = Grade::iter().flat_map(|lhs| Grade::iter().map(move |rhs| Grade::geo(lhs, rhs)));
+    let grades = Grade::iter().map(Grade::define_geo);
 
     quote! {
         pub trait Geometric<Rhs> {
@@ -33,6 +35,7 @@ pub fn define() -> TokenStream {
 
         #f64
         #(#blades)*
+        #(#grades)*
     }
 }
 
@@ -69,11 +72,14 @@ impl Blade {
 }
 
 impl Grade {
-    fn geo(lhs: Self, rhs: Self) -> TokenStream {
-        let f64 = lhs.geo_f64();
+    fn define_geo(self) -> TokenStream {
+        let f64 = self.geo_f64();
+
+        let grades = Grade::iter().map(|rhs| Grade::geo_self(self, rhs));
 
         quote! {
             #f64
+            #(#grades)*
         }
     }
 
@@ -88,6 +94,88 @@ impl Grade {
             }
         }
     }
+
+    fn geo_self(lhs: Self, rhs: Self) -> TokenStream {
+        let output = lhs.geo(rhs);
+
+        let constructor = match output {
+            GeoProd::Zero => zero::ident().to_token_stream(),
+            GeoProd::Blade(blade) => {
+                let sum = lhs
+                    .blades()
+                    .flat_map(|lhs_b| {
+                        rhs.blades().map(move |rhs_b| {
+                            let lhs_f = lhs_b.field();
+                            let rhs_f = rhs_b.field();
+                            quote! {
+                                self.#lhs_f * rhs.#rhs_f
+                            }
+                        })
+                    })
+                    .collect::<syn::punctuated::Punctuated<_, syn::token::Add>>();
+
+                if sum.is_empty() {
+                    quote! { Default::default() }
+                } else {
+                    sum.to_token_stream()
+                }
+            }
+            GeoProd::Grade(grade) => {
+                let fields = grade.blades().map(|b| {
+                    let f = b.field();
+
+                    let sum = lhs
+                        .blades()
+                        .flat_map(|lhs_b| {
+                            rhs.blades().flat_map(move |rhs_b| {
+                                let p = lhs_b * rhs_b;
+                                match p {
+                                    Product::Value(p, _) if p == b => {
+                                        let lhs_f = lhs_b.field();
+                                        let rhs_f = rhs_b.field();
+                                        Some(quote! { self.#lhs_f * rhs.#rhs_f })
+                                    }
+                                    _ => None,
+                                }
+                            })
+                        })
+                        .collect::<syn::punctuated::Punctuated<_, syn::token::Add>>();
+
+                    if sum.is_empty() {
+                        quote! { #f: Default::default(), }
+                    } else {
+                        quote! { #f: #sum, }
+                    }
+                });
+
+                quote! {
+                    #grade {
+                        #(#fields)*
+                    }
+                }
+            }
+            GeoProd::Multi(mv) => {
+                // TODO simplify the process of summing the products
+                // let s = if mv.s.is_some() {
+                // } else {
+                //     zero::ident().to_token_stream()
+                // };
+
+                quote! {
+                    todo!()
+                }
+            }
+        };
+
+        quote! {
+            impl Geometric<#rhs> for #lhs {
+                type Output = #output;
+                fn geo(self, rhs: #rhs) -> Self::Output {
+                    #constructor
+                }
+            }
+        }
+    }
 }
 
 trait Geometric<Rhs> {
@@ -96,41 +184,49 @@ trait Geometric<Rhs> {
 }
 
 impl Geometric<Self> for Grade {
-    type Output = Multivector;
+    type Output = GeoProd;
     fn geo(self, rhs: Self) -> Self::Output {
-        let mut mv = Multivector::default();
-
-        for lhs_blade in self.blades() {
-            for rhs_blade in rhs.blades() {
-                if let Product::Value(output, _) = lhs_blade * rhs_blade {
-                    // TODO impl Add<Grade> for Multivector
-                    match output.grade() {
-                        0 => mv.s = Some(()),
-                        1 => {
-                            mv.v = Some(match mv.v {
-                                None => output.grade_type(),
-                                Some(gt) => gt + output.grade_type(),
-                            })
-                        }
-                        2 => {
-                            mv.b = Some(match mv.b {
-                                None => output.grade_type(),
-                                Some(gt) => gt + output.grade_type(),
-                            })
-                        }
-                        3 => {
-                            mv.t = Some(match mv.t {
-                                None => output.grade_type(),
-                                Some(gt) => gt + output.grade_type(),
-                            })
-                        }
-                        4 => mv.a = Some(()),
-                        _ => unreachable!(),
-                    }
-                }
-            }
-        }
-
-        mv
+        self.blades()
+            .flat_map(|lhs| rhs.blades().map(move |rhs| lhs * rhs))
+            .sum::<Multivector>()
+            .geo_prod()
     }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum GeoProd {
+    Zero,
+    Blade(Blade),
+    Grade(Grade),
+    Multi(Multivector),
+}
+
+impl ToTokens for GeoProd {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            GeoProd::Zero => tokens.append(zero::ident()),
+            GeoProd::Blade(b) => b.to_tokens(tokens),
+            GeoProd::Grade(g) => g.to_tokens(tokens),
+            GeoProd::Multi(mv) => mv.to_tokens(tokens),
+        }
+    }
+}
+
+#[test]
+fn geometric_vectors() {
+    let v = Grade {
+        k: 1,
+        ty: GradeType::Whole,
+    };
+    let sb = v.geo(v);
+    assert_eq!(
+        GeoProd::Multi(Multivector {
+            s: Some(()),
+            v: None,
+            b: Some(GradeType::Whole),
+            t: None,
+            a: None
+        }),
+        sb
+    )
 }
